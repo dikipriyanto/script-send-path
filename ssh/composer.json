@@ -1,0 +1,12 @@
+{
+    "name": "private/ssh-web-client",
+    "description": "Web-based SSH client dengan login via RSA private key",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "phpseclib/phpseclib": "~3.0"
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}

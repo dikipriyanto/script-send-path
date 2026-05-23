@@ -1,0 +1,8 @@
+# Larang akses langsung ke direktori internal.
+<FilesMatch "\.(json|lock|md)$">
+    Require all denied
+</FilesMatch>
+
+# Tutup direktori vendor & lib dari akses publik.
+RedirectMatch 403 ^.*/vendor/.*$
+RedirectMatch 403 ^.*/lib/.*\.php$
