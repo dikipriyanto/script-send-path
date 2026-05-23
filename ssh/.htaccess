@@ -1,8 +1,8 @@
-# Larang akses langsung ke direktori internal.
+# Block akses ke direktori dependency & file config.
+RedirectMatch 403 ^.*/vendor/.*$
 <FilesMatch "\.(json|lock|md)$">
     Require all denied
 </FilesMatch>
 
-# Tutup direktori vendor & lib dari akses publik.
-RedirectMatch 403 ^.*/vendor/.*$
-RedirectMatch 403 ^.*/lib/.*\.php$
+# Default ke ssh.php saat akses /ssh/
+DirectoryIndex ssh.php

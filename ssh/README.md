@@ -1,58 +1,53 @@
-# SSH Web Client (PHP)
+# SSH Web Client (PHP, single-file)
 
-Login ke server remote via web browser menggunakan **RSA / Ed25519 / ECDSA private key**, lalu langsung diarahkan ke web terminal (xterm.js).
+Login ke server remote via browser pakai **RSA / Ed25519 / ECDSA private key**, lalu otomatis diarahkan ke web terminal (xterm.js).
 
-## Cara pasang
+Hanya **satu file PHP** (`ssh.php`) — host/port/username sudah otomatis terisi dari konstanta di atas file. User tinggal paste/upload private key.
 
-1. Upload folder `ssh/` ini ke web server (mis. `https://domain.tld/ssh/`).
-2. Jalankan composer untuk install dependency:
+## Pasang
+
+1. Edit konstanta default di bagian atas `ssh.php`:
+   ```php
+   const DEFAULT_HOST     = 'example.com';
+   const DEFAULT_PORT     = 22;
+   const DEFAULT_USERNAME = 'root';
+   ```
+2. Install dependency phpseclib v3:
    ```bash
    cd ssh
    composer install --no-dev
    ```
-   Composer akan men-download `phpseclib/phpseclib` v3 ke folder `vendor/`.
+   (Tidak ada composer di server? Jalankan composer install di komputer lokal lalu upload folder `vendor/` apa adanya.)
 
-   > Tidak punya composer di server? Install lokal lalu upload folder `vendor/` apa adanya.
+3. Akses `https://domain.tld/ssh/` (atau `ssh.php`).
 
-3. Pastikan PHP **>= 7.4** dan ekstensi berikut aktif: `openssl`, `mbstring`, `gmp` (opsional, untuk performa).
+## Pakai
 
-4. Akses `https://domain.tld/ssh/` — akan tampil form login.
-
-## Cara pakai
-
-1. Isi **Host**, **Port** (default 22), **Username**.
-2. Upload file private key, **atau** paste isi key di textarea.
-3. Isi **Passphrase** kalau key-nya terenkripsi.
-4. Klik **Connect**. Bila autentikasi berhasil, otomatis redirect ke `terminal.php`.
-5. Ketik perintah seperti di shell biasa. Tombol panah Atas/Bawah untuk history.
-6. Ketik `exit` atau klik **Disconnect** untuk menutup sesi.
+1. Form sudah pre-filled host/port/username.
+2. Paste isi private key, atau pilih file key (.pem / .key).
+3. Isi passphrase jika key terenkripsi.
+4. Klik **Connect** → langsung diarahkan ke terminal.
+5. Ketik perintah seperti shell biasa. `exit` / Disconnect untuk keluar.
 
 ## Batasan
 
-- Mode eksekusi adalah **non-interaktif** (per-command exec). Program TUI seperti `vim`, `top`, `nano`, `less` **tidak didukung** karena membutuhkan PTY persisten — itu butuh WebSocket server, di luar lingkup PHP single-request.
-- Working directory dilacak per-session (perintah `cd` bekerja antar request).
-- Variabel environment yang di-export tidak persist antar request.
+- Mode eksekusi **non-interaktif** (per-command exec). `vim`, `top`, `nano`, `less` tidak didukung — itu butuh PTY persisten via WebSocket.
+- `cd` antar perintah dipertahankan (cwd disimpan di session). `export VAR=...` tidak persist.
 
 ## Keamanan
 
-- **WAJIB pakai HTTPS.** Private key dikirim dari browser ke server; tanpa TLS, key bisa disadap.
-- Private key disimpan di `$_SESSION` (server-side) dalam bentuk base64. Tidak ditulis ke file.
-- File `.htaccess` mem-block akses publik ke `vendor/`, `lib/`, dan `composer.*`.
-- Direkomendasikan menambahkan proteksi tambahan di depan halaman ini: HTTP Basic Auth, IP whitelist, atau VPN.
-- Pertimbangkan set `session.cookie_secure=1`, `session.cookie_httponly=1`, dan `session.cookie_samesite=Strict` di `php.ini`.
-- Setelah selesai dipakai, klik **Disconnect** agar key dihapus dari session.
+- **WAJIB pakai HTTPS.** Tanpa TLS, private key bisa disadap.
+- Private key disimpan di `$_SESSION` (server memory) — tidak ditulis ke disk.
+- File `.htaccess` mem-block akses ke `vendor/`, `composer.json`, `README.md`.
+- Disarankan tambahkan Basic Auth / IP whitelist di depan endpoint ini.
+- Setelah selesai, klik **Disconnect** untuk bersihkan session.
 
-## Struktur file
+## Struktur
 
 ```
 ssh/
-├── composer.json
-├── index.php           # form login
-├── login.php           # validasi kredensial
-├── terminal.php        # halaman web terminal
-├── exec.php            # endpoint AJAX exec command
-├── logout.php          # bersihkan session
-├── lib/SSHSession.php  # helper class SSH
-├── .htaccess           # proteksi direktori
+├── ssh.php          ← satu-satunya file aplikasi
+├── composer.json    ← dependency phpseclib v3
+├── .htaccess        ← proteksi & DirectoryIndex
 └── README.md
 ```
